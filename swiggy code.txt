@@ -1,0 +1,164 @@
+use swiggy;
+desc swiggy;
+select * from swiggy;
+-- HOW MANY RESTAURANTS HAVE A RATING GREATER THAN 4.5?
+SELECT COUNT(*) AS number_of_restaurants
+FROM swiggy
+WHERE rating > 4.5;
+
+
+-- WHICH IS THE TOP 1 CITY WITH THE HIGHEST NUMBER OF RESTAURANTS?
+SELECT city, COUNT(*) AS number_of_restaurants
+FROM swiggy
+GROUP BY city
+ORDER BY number_of_restaurants DESC
+LIMIT 1;
+
+
+-- HOW MANY RESTAURANTS HAVE THE WORD "PIZZA" IN THEIR NAME?
+SELECT COUNT(DISTINCT restaurant_name) AS pizza_restaurant_count
+FROM swiggy
+WHERE restaurant_name LIKE '%Pizza%';
+
+
+-- WHAT IS THE MOST COMMON CUISINE AMONG THE RESTAURANTS IN THE DATASET?
+ SELECT cuisine, COUNT(*) AS cuisine_count
+FROM swiggy
+GROUP BY cuisine
+ORDER BY cuisine_count DESC
+LIMIT 1;
+
+
+-- WHAT IS THE AVERAGE RATING OF RESTAURANTS IN EACH CITY?
+SELECT city, AVG(rating) AS average_rating
+FROM swiggy
+GROUP BY city;
+
+
+-- WHAT IS THE HIGHEST PRICE OF ITEM UNDER THE 'RECOMMENDED' MENU CATEGORY FOR EACH RESTAURANT?
+  SELECT restaurant_name, MAX(price) AS highest_price
+FROM swiggy
+WHERE menu_category = 'Recommended'
+GROUP BY restaurant_name;
+
+
+ -- FIND THE TOP 5 MOST EXPENSIVE RESTAURANTS THAT OFFER CUISINE OTHER THAN INDIAN CUISINE.
+SELECT restaurant_name, city, cost_per_person
+FROM swiggy
+WHERE cuisine NOT LIKE '%Indian%'
+GROUP BY restaurant_name, city, cost_per_person
+ORDER BY cost_per_person DESC
+LIMIT 5;
+
+
+-- FIND THE RESTAURANTS THAT HAVE AN AVERAGE COST WHICH IS HIGHER THAN THE TOTAL AVERAGE COST OF ALL RESTAURANTS TOGETHER.
+SELECT 
+    restaurant_name,
+    city,
+    AVG(cost_per_person) AS average_cost_per_person
+FROM 
+    swiggy
+GROUP BY 
+    restaurant_name, city
+HAVING 
+    AVG(cost_per_person) > (SELECT AVG(cost_per_person) FROM swiggy)
+ORDER BY 
+    average_cost_per_person DESC;
+
+
+
+-- RETRIEVE THE DETAILS OF RESTAURANTS THAT HAVE THE SAME NAME BUT ARE LOCATED IN DIFFERENT CITIES.
+SELECT 
+    swiggy1.restaurant_name,
+    swiggy1.city,
+    swiggy1.address,
+    swiggy1.rating,
+    swiggy1.cost_per_person,
+    swiggy1.cuisine,
+    swiggy1.restaurant_link
+FROM 
+    swiggy swiggy1
+JOIN 
+    (SELECT restaurant_name
+     FROM swiggy
+     GROUP BY restaurant_name
+     HAVING COUNT(DISTINCT city) > 1) swiggy2
+ON 
+    swiggy1.restaurant_name = swiggy2.restaurant_name
+ORDER BY 
+    swiggy1.restaurant_name, swiggy1.city;
+
+
+
+
+-- WHICH RESTAURANT OFFERS THE MOST NUMBER OF ITEMS IN THE 'MAIN COURSE' CATEGORY?
+SELECT 
+    restaurant_name,
+    city,
+    COUNT(*) AS main_course_item_count
+FROM 
+    swiggy
+WHERE 
+    menu_category = 'Main Course'
+GROUP BY 
+    restaurant_name, city
+ORDER BY 
+    main_course_item_count DESC
+LIMIT 1;
+
+
+-- LIST THE NAMES OF RESTAURANTS THAT ARE 100% VEGEATARIAN IN ALPHABETICAL ORDER OF RESTAURANT NAME.
+SELECT 
+    restaurant_name
+FROM 
+    swiggy
+GROUP BY 
+    restaurant_name
+HAVING 
+    SUM(CASE WHEN 'veg_or_non-veg' = 'Non-Veg' THEN 1 ELSE 0 END) = 0
+ORDER BY 
+    restaurant_name;
+
+    
+    -- WHICH IS THE RESTAURANT PROVIDING THE LOWEST AVERAGE PRICE FOR ALL ITEMS?
+    SELECT 
+    restaurant_name,
+    city,
+    AVG(price) AS average_price
+FROM 
+    swiggy
+GROUP BY 
+    restaurant_name, city
+ORDER BY 
+    average_price ASC
+LIMIT 1;
+
+
+
+-- WHICH TOP 5 RESTAURANT OFFERS HIGHEST NUMBER OF CATEGORIES?
+SELECT 
+    restaurant_name,
+    city,
+    COUNT(DISTINCT menu_category) AS category_count
+FROM 
+    swiggy
+GROUP BY 
+    restaurant_name, city
+ORDER BY 
+    category_count DESC
+LIMIT 5;
+  
+
+
+-- WHICH RESTAURANT PROVIDES THE HIGHEST PERCENTAGE OF NON-VEGEATARIAN FOOD?
+SELECT 
+    restaurant_name,
+    city,
+    (COUNT(CASE WHEN 'veg_or_non-veg' = 'Non-Veg' THEN 1 END) * 100.0 / COUNT(*)) AS non_veg_percentage
+FROM 
+    swiggy
+GROUP BY 
+    restaurant_name, city
+ORDER BY 
+    non_veg_percentage DESC
+LIMIT 1;
